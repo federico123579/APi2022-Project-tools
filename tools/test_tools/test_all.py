@@ -31,15 +31,22 @@ def get_test_tuples(test_folder: Path) -> list[tuple[Path, Path]]:
 
 # #################### PRINT ####################
 def print_wrong_output(
-    console: Console, in_file: Path, out_file: Path, executable: Path
+    console: Console,
+    in_file: Path,
+    out_file: Path,
+    executable: Path,
+    print_more: bool = False,
 ):
     text = Text.assemble(
         f"{in_file.parent.name} ",
         (f"{in_file.name}", "bold"),
         " - ",
         ("FAILED", "bold red"),
-        f"\nprova: testsingle {executable} {in_file} {out_file}",
     )
+
+    if print_more:
+        text.append(f"\nprova: testsingle {executable} {in_file} {out_file}")
+
     console.print(text)
 
 
@@ -56,11 +63,12 @@ def print_right_output(console: Console, in_file: Path):
 @click.command
 @click.argument("executable", type=click.Path(exists=True))
 @click.argument("test_folder", type=click.Path(exists=True))
-def main(executable, test_folder):
+@click.option("-q", "--quiet", is_flag=True, default=False)
+def main(executable, test_folder, quiet):
     console = Console()
     for in_f, out_f in get_test_tuples(Path(test_folder)):
         if not tested_correctly(in_f, out_f, Path(executable)):
-            print_wrong_output(console, in_f, out_f, executable)
+            print_wrong_output(console, in_f, out_f, executable, not quiet)
         else:
             print_right_output(console, in_f)
 
